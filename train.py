@@ -4,7 +4,7 @@ Train a YOLOv5 model on a custom dataset. Models and datasets download automatic
 
 Usage - Single-GPU training:
     $ python train.py --data coco128.yaml --weights yolov5s.pt --img 640  # from pretrained (recommended)
-    $ python train.py --data coco128.yaml --weights '' --cfg yolov5s.yaml --img 640  # from scratch
+    $ python train.py --data coco128.yaml --weights '' --cfg yolov5s-C2f-FasterBlock_obb.yaml --img 640  # from scratch
 
 Usage - Multi-GPU DDP training:
     $ python -m torch.distributed.runs --nproc_per_node 4 --master_port 1 train.py --data coco128.yaml --weights yolov5s.pt --img 640 --device 0,1,2,3
@@ -513,8 +513,15 @@ def train(hyp, opt, device, callbacks):
 def parse_opt(known=False):
     """Parses command-line arguments for YOLOv5 training, validation, and testing."""
     parser = argparse.ArgumentParser()
+    """
+    backbone:
+    0. models/yaml/yolov5s.yaml        # Transferred 342/349 items from yolov5s.pt 
+    1. backbone_yaml/yolov5s-C2f-FasterBlock_obb.yaml
+    2. models/backbone_yaml/yolov5s_c2f_Faster.yaml
+
+    """
     parser.add_argument("--weights", type=str, default=ROOT / "yolov5s.pt", help="initial weights path")
-    parser.add_argument("--cfg", type=str, default="models/yaml/yolov5s.yaml", help="model.yaml path")
+    parser.add_argument("--cfg", type=str, default="models/backbone_yaml/yolov5s_c2f_Faster.yaml", help="model.yaml path")
     parser.add_argument("--data", type=str, default=ROOT / "data/mycoco.yaml", help="dataset.yaml path")
     parser.add_argument("--hyp", type=str, default=ROOT / "data/hyps/hyp.scratch-low.yaml", help="hyperparameters path")
     parser.add_argument("--epochs", type=int, default=100, help="total training epochs")

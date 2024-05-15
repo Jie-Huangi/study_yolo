@@ -3,9 +3,10 @@
 YOLO-specific modules.
 
 Usage:
-    $ python models/yolo.py --cfg yolov5s.yaml
+    $ python models/yolo.py --cfg yolov5s-C2f-FasterBlock_obb.yaml
 """
-
+from models.Addmodules import *
+# from models.Add_backbone import *
 import argparse
 import contextlib
 import math
@@ -215,7 +216,7 @@ class BaseModel(nn.Module):
 
 class DetectionModel(BaseModel):
     # YOLOv5 detection models
-    def __init__(self, cfg="yolov5s.yaml", ch=3, nc=None, anchors=None):
+    def __init__(self, cfg="backbone_yaml/yolov5s.yaml", ch=3, nc=None, anchors=None):
         """Initializes YOLOv5 models with configuration file, input channels, number of classes, and custom anchors."""
         super().__init__()
         if isinstance(cfg, dict):
@@ -235,7 +236,9 @@ class DetectionModel(BaseModel):
         if anchors:
             LOGGER.info(f"Overriding models.yaml anchors with anchors={anchors}")
             self.yaml["anchors"] = round(anchors)  # override yaml value
+
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=[ch])  # models, savelist
+
         self.names = [str(i) for i in range(self.yaml["nc"])]  # default names
         self.inplace = self.yaml.get("inplace", True)
 
@@ -411,6 +414,7 @@ def parse_model(d, ch):
             nn.ConvTranspose2d,
             DWConvTranspose2d,
             C3x,
+            C2f_FasterBlock,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
@@ -453,7 +457,14 @@ def parse_model(d, ch):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cfg", type=str, default="yaml/yolov5s.yaml", help="models.yaml")
+
+    """
+    backbone:
+    1. backbone_yaml/yolov5s-C2f-FasterBlock_obb.yaml
+    
+    """
+
+    parser.add_argument("--cfg", type=str, default="backbone_yaml/yolov5s.yaml", help="models.yaml")
     parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs")
     parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--profile", action="store_true", help="profile models speed")

@@ -582,7 +582,7 @@ def parse_model(d, ch, model, imgsz):
 
 class TFModel:
     # TF YOLOv5 models
-    def __init__(self, cfg="yolov5s.yaml", ch=3, nc=None, model=None, imgsz=(640, 640)):
+    def __init__(self, cfg="yolov5s-C2f-FasterBlock_obb.yaml", ch=3, nc=None, model=None, imgsz=(640, 640)):
         """Initializes TF YOLOv5 models with specified configuration, channels, classes, models instance, and input
         size.
         """
