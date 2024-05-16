@@ -16,7 +16,7 @@ from timm.models.registry import register_model
 
 
 # __all__ = ['ghost_net']
-
+__all__ = ['ghostnetv3']
 
 def _make_divisible(v, divisor, min_value=None):
     """
@@ -747,20 +747,37 @@ class GhostNet(nn.Module):
         self.act2 = nn.ReLU(inplace=True)
         self.classifier = nn.Linear(output_channel, num_classes)
 
+        # self.blocks = nn.Sequential(*stages)
+        self.width_list = [i.size(1) for i in self.forward(torch.randn(1, 3, 640, 640))]
+
     def forward(self, x):
+        unique_tensors = {}
         x = self.conv_stem(x)
         x = self.bn1(x)
         x = self.act1(x)
-        x = self.blocks(x)
-        x = self.global_pool(x)
-        x = self.conv_head(x)
-        x = self.act2(x)
-        x = x.view(x.size(0), -1)
-        # if self.dropout > 0.:
-        # x = F.dropout(x, p=self.dropout, training=self.training)
-        x = self.classifier(x)
-        x = x.squeeze()
-        return x
+        for model in self.blocks:
+            x = model(x)
+            if self.dropout > 0.:
+                x = F.dropout(x, p=self.dropout, training=self.training)
+            width, height = x.shape[2], x.shape[3]
+            unique_tensors[(width, height)] = x
+        result_list = list(unique_tensors.values())[-4:]
+        return result_list
+
+    # def forward(self, x):
+    #     x = self.conv_stem(x)
+    #     x = self.bn1(x)
+    #     x = self.act1(x)
+    #     x = self.blocks(x)
+    #     x = self.global_pool(x)
+    #     x = self.conv_head(x)
+    #     x = self.act2(x)
+    #     x = x.view(x.size(0), -1)
+    #     # if self.dropout > 0.:
+    #     # x = F.dropout(x, p=self.dropout, training=self.training)
+    #     x = self.classifier(x)
+    #     x = x.squeeze()
+    #     return x
 
     def reparameterize(self):
         for _, module in self.named_modules():
@@ -801,7 +818,8 @@ def ghostnetv3(**kwargs):
          [5, 960, 160, 0.25, 1]
          ]
     ]
-    return GhostNet(cfgs, num_classes=1000, width=kwargs['width'], dropout=0.2)
+    # return GhostNet(cfgs, num_classes=1000, width=kwargs['width'], dropout=0.2)
+    return GhostNet(cfgs, num_classes=1000, width=1.0, dropout=0.2)
 
 
 if __name__ == '__main__':
@@ -818,10 +836,10 @@ if __name__ == '__main__':
         y13 = model(input3)
     model.reparameterize()
     print(model)
-    with torch.inference_mode():
-        y21 = model(input1)
-        y22 = model(input2)
-        y23 = model(input3)
-    print(torch.allclose(y11, y21), torch.norm(y11 - y21))
-    print(torch.allclose(y12, y22), torch.norm(y12 - y22))
-    print(torch.allclose(y13, y23), torch.norm(y13 - y23))
+    # with torch.inference_mode():
+    #     y21 = model(input1)
+    #     y22 = model(input2)
+    #     y23 = model(input3)
+    # print(torch.allclose(y11, y21), torch.norm(y11 - y21))
+    # print(torch.allclose(y12, y22), torch.norm(y12 - y22))
+    # print(torch.allclose(y13, y23), torch.norm(y13 - y23))

@@ -515,13 +515,16 @@ def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     """
     backbone:
-    0. models/yaml/yolov5s.yaml        # Transferred 342/349 items from yolov5s.pt 
-    1. backbone_yaml/yolov5s-C2f-FasterBlock_obb.yaml
+    1. models/yaml/yolov5s.yaml                        # Transferred 342/349 items from yolov5s.pt 
     2. models/backbone_yaml/yolov5s_c2f_Faster.yaml
+    3. models/backbone_yaml/yolov5s_ShuffleNetV1.yaml   
+    4. models/backbone_yaml/yolov5s_ShuffleNetV2.yaml   
+    5. models/backbone_yaml/yolov5s_GhostNetV1.yaml
+    6. models/backbone_yaml/yolov5s_GhostNetV2.yaml 
 
     """
     parser.add_argument("--weights", type=str, default=ROOT / "yolov5s.pt", help="initial weights path")
-    parser.add_argument("--cfg", type=str, default="models/backbone_yaml/yolov5s_c2f_Faster.yaml", help="model.yaml path")
+    parser.add_argument("--cfg", type=str, default="models/backbone_yaml/yolov5s_GhostNetV2.yaml", help="model.yaml path")
     parser.add_argument("--data", type=str, default=ROOT / "data/mycoco.yaml", help="dataset.yaml path")
     parser.add_argument("--hyp", type=str, default=ROOT / "data/hyps/hyp.scratch-low.yaml", help="hyperparameters path")
     parser.add_argument("--epochs", type=int, default=100, help="total training epochs")

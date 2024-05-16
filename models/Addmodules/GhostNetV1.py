@@ -184,6 +184,7 @@ class GhostNet(nn.Module):
         output_channel = _make_divisible(exp_size * width, 4)
         stages.append(nn.Sequential(ConvBnAct(input_channel, output_channel, 1)))
         input_channel = output_channel
+
         self.blocks = nn.Sequential(*stages)
         self.width_list = [i.size(1) for i in self.forward(torch.randn(1, 3, 640, 640))]
     def forward(self, x):

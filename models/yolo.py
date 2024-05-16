@@ -157,19 +157,62 @@ class BaseModel(nn.Module):
         """
         return self._forward_once(x, profile, visualize)  # single-scale inference, train
 
-    def _forward_once(self, x, profile=False, visualize=False):
+    def _forward_once(self, x, profile=False, visualize=False, embed=None):
         """Performs a forward pass on the YOLOv5 models, enabling profiling and feature visualization options."""
-        y, dt = [], []  # outputs
+        y, dt, embeddings = [], [], []  # outputs
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
                 self._profile_one_layer(m, x, dt)
-            x = m(x)  # runs
-            y.append(x if m.i in self.save else None)  # save output
+            if hasattr(m, 'backbone'):
+                try:
+                    if m.input_nums > 1:
+                        # input nums more than one
+                        x = m(*x)  # run
+                    else:
+                        x = m(x)
+                except AttributeError:
+                    # AttributeError: 'Conv' object has no attribute 'input_nums'
+                    x = m(x)
+                if len(x) != 5:  # 0 - 5
+                    x.insert(0, None)
+                for index, i in enumerate(x):
+                    if index in self.save:
+                        y.append(i)
+                    else:
+                        y.append(None)
+                x = x[-1]  # 最后一个输出传给下一层
+            else:
+                try:
+                    if m.input_nums > 1:
+                        # input nums more than one
+                        x = m(*x)  # run
+                    else:
+                        x = m(x)
+                except AttributeError:
+                    # AttributeError: 'Conv' object has no attribute 'input_nums'
+                    x = m(x)
+                y.append(x if m.i in self.save else None)  # save output
+
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if embed and m.i in embed:
+                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                if m.i == max(embed):
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
+        # y, dt = [], []  # outputs
+        # for m in self.model:
+        #     if m.f != -1:  # if not from previous layer
+        #         x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+        #     if profile:
+        #         self._profile_one_layer(m, x, dt)
+        #     x = m(x)  # runs
+        #     y.append(x if m.i in self.save else None)  # save output
+        #     if visualize:
+        #         feature_visualization(x, m.type, m.i, save_dir=visualize)
+        # return x
 
     def _profile_one_layer(self, m, x, dt):
         """Profiles a single layer's performance by computing GFLOPs, execution time, and parameters."""
@@ -388,7 +431,15 @@ def parse_model(d, ch):
     no = na * (nc + 5)  # number of outputs = anchors * (classes + 5)
 
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
+
+    # new code
+    backbone = False
+
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
+
+        # new code
+        t = m
+
         m = eval(m) if isinstance(m, str) else m  # eval strings
         for j, a in enumerate(args):
             with contextlib.suppress(NameError):
@@ -424,10 +475,25 @@ def parse_model(d, ch):
             if m in {BottleneckCSP, C3, C3TR, C3Ghost, C3x}:
                 args.insert(2, n)  # number of repeats
                 n = 1
+
+        # ---------------------------------------主干----------------------------
+        elif m in {MobileNetV1, MobileNetV2, MobileNetV3,
+                   shufflenet_v1_x0_5,
+                   shufflenet_v1_x1_0, shufflenet_v1_x1_5, shufflenet_v1_x2_0,
+                   shufflenetv2,
+                   efficient,
+                   Ghostnetv1, Ghostnetv2, ghostnetv3,
+                   }:
+            m = m(*args)
+            c2 = m.width_list  # 返回通道列表
+            backbone = True
+        # ---------------------------------------主干----------------------------
+
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
+
         # TODO: channel, gw, gd
         elif m in {Detect, Segment}:
             args.append([ch[x] for x in f])
@@ -435,6 +501,7 @@ def parse_model(d, ch):
                 args[1] = [list(range(args[1] * 2))] * len(f)
             if m is Segment:
                 args[3] = make_divisible(args[3] * gw, ch_mul)
+
         elif m is Contract:
             c2 = ch[f] * args[0] ** 2
         elif m is Expand:
@@ -442,16 +509,42 @@ def parse_model(d, ch):
         else:
             c2 = ch[f]
 
-        m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
-        t = str(m)[8:-2].replace("__main__.", "")  # module type
-        np = sum(x.numel() for x in m_.parameters())  # number params
-        m_.i, m_.f, m_.type, m_.np = i, f, t, np  # attach index, 'from' index, type, number params
-        LOGGER.info(f"{i:>3}{str(f):>18}{n_:>3}{np:10.0f}  {t:<40}{str(args):<30}")  # print
-        save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+        # new code
+        if isinstance(c2, list):
+            m_ = m
+            m_.backbone = True
+        else:
+            m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+            t = str(m)[8:-2].replace('__main__.', '')  # module type
+
+        m.np = sum(x.numel() for x in m_.parameters())  # number params
+        m_.i, m_.f, m_.type = i + 4 if backbone else i, f, t  # attach index, 'from' index, type
+
+        LOGGER.info(f'{i:>3}{str(f):>20}{n_:>3}{m.np:10.0f}  {t:<45}{str(args):<30}')  # print
+
+        save.extend(
+            x % (i + 4 if backbone else i) for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
+
         if i == 0:
             ch = []
-        ch.append(c2)
+        if isinstance(c2, list):
+            ch.extend(c2)
+            if len(c2) != 5:
+                ch.insert(0, 0)
+        else:
+            ch.append(c2)
+
+        # m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        # t = str(m)[8:-2].replace("__main__.", "")  # module type
+        # np = sum(x.numel() for x in m_.parameters())  # number params
+        # m_.i, m_.f, m_.type, m_.np = i, f, t, np  # attach index, 'from' index, type, number params
+        # LOGGER.info(f"{i:>3}{str(f):>18}{n_:>3}{np:10.0f}  {t:<40}{str(args):<30}")  # print
+        # save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+        # layers.append(m_)
+        # if i == 0:
+        #     ch = []
+        # ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
 
 
@@ -460,11 +553,17 @@ if __name__ == "__main__":
 
     """
     backbone:
-    1. backbone_yaml/yolov5s-C2f-FasterBlock_obb.yaml
+    1. backbone_yaml/yolov5s.yaml                       # 7235389 parameters, 7235389 gradients, 16.6 GFLOPs
+    2. backbone_yaml/yolov5s_c2f_Faster.yaml            # 6080637 parameters, 6080637 gradients, 14.5 GFLOPs
+    3. models/backbone_yaml/yolov5s_ShuffleNetV1.yaml   # 5362317 parameters, 5362317 gradients, 8.2 GFLOPs
+    4. models/backbone_yaml/yolov5s_ShuffleNetV2.yaml   # 4496569 parameters, 4496569 gradients, 8.9 GFLOPs
+    5. models/backbone_yaml/yolov5s_GhostNetV1.yaml     # 7296897 parameters, 7296897 gradients, 10.9 GFLOPs
+    6. models/backbone_yaml/yolov5s_GhostNetV2.yaml     # 8271297 parameters, 8271297 gradients
+    7. models/backbone_yaml/yolov5s_GhostNetV3.yaml     # 12754497 parameters, 12754497 gradients
     
     """
 
-    parser.add_argument("--cfg", type=str, default="backbone_yaml/yolov5s.yaml", help="models.yaml")
+    parser.add_argument("--cfg", type=str, default="backbone_yaml/yolov5s_GhostNetV3.yaml", help="models.yaml")
     parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs")
     parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--profile", action="store_true", help="profile models speed")
