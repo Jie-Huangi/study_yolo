@@ -515,20 +515,37 @@ def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     """
     backbone:
-    1. models/yaml/yolov5s.yaml                        # Transferred 342/349 items from yolov5s.pt 
-    2. models/backbone_yaml/yolov5s_c2f_Faster.yaml
-    3. models/backbone_yaml/yolov5s_ShuffleNetV1.yaml   
-    4. models/backbone_yaml/yolov5s_ShuffleNetV2.yaml   
-    5. models/backbone_yaml/yolov5s_GhostNetV1.yaml
-    6. models/backbone_yaml/yolov5s_GhostNetV2.yaml 
+    1. backbone_yaml/yolov5s.yaml                       # 7235389 parameters, 7235389 gradients, 16.6 GFLOPs
+    2. backbone_yaml/yolov5s_c2f_Faster.yaml            # 6080637 parameters, 6080637 gradients, 14.5 GFLOPs
+    
+    3. models/backbone_yaml/yolov5s_ShuffleNetV1.yaml   # 5362317 parameters, 5362317 gradients, 8.2 GFLOPs
+    4. models/backbone_yaml/yolov5s_ShuffleNetV2.yaml   # 4496569 parameters, 4496569 gradients, 8.9 GFLOPs
+    
+    5. models/backbone_yaml/yolov5s_GhostNetV1.yaml     # 7296897 parameters, 7296897 gradients, 10.9 GFLOPs
+    6. models/backbone_yaml/yolov5s_GhostNetV2.yaml     # 8271297 parameters, 8271297 gradients
+    7. models/backbone_yaml/yolov5s_GhostNetV3.yaml     # 12754497 parameters, 12754497 gradients
+    
+    8. models/backbone_yaml/yolov5s_EfficientNetV1.yaml # 8848417 parameters, 8848417 gradients, 6.8 GFLOPs
+    9. models/backbone_yaml/yolov5s_EfficientNetV2.yaml # 23338445 parameters, 23338445 gradients, 56.4 GFLOPs
+    10. models/backbone_yaml/yolov5s_EfficientViT2.yaml # 5558749 parameters, 5558749 gradients
+    
+    11. models/backbone_yaml/yolov5s_MobileNetV1.yaml   # 8102461 parameters, 8102461 gradients, 17.6 GFLOPs
+    12. models/backbone_yaml/yolov5s_MobileNetV2.yaml   # 5366461 parameters, 5366461 gradients, 11.4 GFLOPs
+    13. models/backbone_yaml/yolov5s_MobileNetV3.yaml   # 7595587 parameters, 7595587 gradients, 12.2 GFLOPs
+    14. models/backbone_yaml/yolov5s_MobileNetV4.yaml   # 5812061 parameters, 5812061 gradients, 9.2 GFLOPs
+   
+    15. models/backbone_yaml/yolov5s_MobileViTv1.yaml   # 4820629 parameters, 4820629 gradients, 11.2 GFLOPs
+    16. models/backbone_yaml/yolov5s_MobileViTv2.yaml   # 4878174 parameters, 4878174 gradients
 
     """
     parser.add_argument("--weights", type=str, default=ROOT / "yolov5s.pt", help="initial weights path")
-    parser.add_argument("--cfg", type=str, default="models/backbone_yaml/yolov5s_GhostNetV2.yaml", help="model.yaml path")
+    parser.add_argument("--cfg", type=str, default="models/backbone_yaml/yolov5s_GhostNetV3.yaml", help="model.yaml path")
     parser.add_argument("--data", type=str, default=ROOT / "data/mycoco.yaml", help="dataset.yaml path")
     parser.add_argument("--hyp", type=str, default=ROOT / "data/hyps/hyp.scratch-low.yaml", help="hyperparameters path")
     parser.add_argument("--epochs", type=int, default=100, help="total training epochs")
-    parser.add_argument("--batch-size", type=int, default=4, help="total batch size for all GPUs, -1 for autobatch")
+
+    parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs, -1 for autobatch")
+
     parser.add_argument("--imgsz", "--img", "--img-size", type=int, default=640, help="train, val image size (pixels)")
     parser.add_argument("--rect", action="store_true", help="rectangular training")
     parser.add_argument("--resume", nargs="?", const=True, default=False, help="resume most recent training")
@@ -544,7 +561,9 @@ def parse_opt(known=False):
     parser.add_argument("--bucket", type=str, default="", help="gsutil bucket")
     parser.add_argument("--cache", type=str, nargs="?", const="ram", help="image --cache ram/disk")
     parser.add_argument("--image-weights", action="store_true", help="use weighted image selection for training")
-    parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
+
+    parser.add_argument("--device", default="0", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
+
     parser.add_argument("--multi-scale", action="store_true", help="vary img-size +/- 50%%")
     parser.add_argument("--single-cls", action="store_true", help="train multi-class data as single-class")
     parser.add_argument("--optimizer", type=str, choices=["SGD", "Adam", "AdamW"], default="SGD", help="optimizer")

@@ -477,11 +477,14 @@ def parse_model(d, ch):
                 n = 1
 
         # ---------------------------------------主干----------------------------
-        elif m in {MobileNetV1, MobileNetV2, MobileNetV3,
+        elif m in {MobileNetV1, MobileNetV2, MobileNetV3, MobileNetV4ConvSmall,
+                   mobile_vit_xx_small, mobile_vit2_xx_small,
                    shufflenet_v1_x0_5,
                    shufflenet_v1_x1_0, shufflenet_v1_x1_5, shufflenet_v1_x2_0,
                    shufflenetv2,
-                   efficient,
+                   efficient, efficientnet_v2,
+                   EfficientViT_M0, EfficientViT_M1, EfficientViT_M2,
+                   EfficientViT_M3, EfficientViT_M4, EfficientViT_M5,
                    Ghostnetv1, Ghostnetv2, ghostnetv3,
                    }:
             m = m(*args)
@@ -555,17 +558,32 @@ if __name__ == "__main__":
     backbone:
     1. backbone_yaml/yolov5s.yaml                       # 7235389 parameters, 7235389 gradients, 16.6 GFLOPs
     2. backbone_yaml/yolov5s_c2f_Faster.yaml            # 6080637 parameters, 6080637 gradients, 14.5 GFLOPs
+    
     3. models/backbone_yaml/yolov5s_ShuffleNetV1.yaml   # 5362317 parameters, 5362317 gradients, 8.2 GFLOPs
     4. models/backbone_yaml/yolov5s_ShuffleNetV2.yaml   # 4496569 parameters, 4496569 gradients, 8.9 GFLOPs
+    
     5. models/backbone_yaml/yolov5s_GhostNetV1.yaml     # 7296897 parameters, 7296897 gradients, 10.9 GFLOPs
     6. models/backbone_yaml/yolov5s_GhostNetV2.yaml     # 8271297 parameters, 8271297 gradients
     7. models/backbone_yaml/yolov5s_GhostNetV3.yaml     # 12754497 parameters, 12754497 gradients
     
+    8. models/backbone_yaml/yolov5s_EfficientNetV1.yaml # 8848417 parameters, 8848417 gradients, 6.8 GFLOPs
+    9. models/backbone_yaml/yolov5s_EfficientNetV2.yaml # 23338445 parameters, 23338445 gradients, 56.4 GFLOPs
+    10. models/backbone_yaml/yolov5s_EfficientViT2.yaml # 5558749 parameters, 5558749 gradients
+    
+    11. models/backbone_yaml/yolov5s_MobileNetV1.yaml   # 8102461 parameters, 8102461 gradients, 17.6 GFLOPs
+    12. models/backbone_yaml/yolov5s_MobileNetV2.yaml   # 5366461 parameters, 5366461 gradients, 11.4 GFLOPs
+    13. models/backbone_yaml/yolov5s_MobileNetV3.yaml   # 7595587 parameters, 7595587 gradients, 12.2 GFLOPs
+    14. models/backbone_yaml/yolov5s_MobileNetV4.yaml   # 5812061 parameters, 5812061 gradients, 9.2 GFLOPs
+    15. models/backbone_yaml/yolov5s_MobileViTv1.yaml   # 4820629 parameters, 4820629 gradients, 11.2 GFLOPs
+    16. models/backbone_yaml/yolov5s_MobileViTv2.yaml   # 4878174 parameters, 4878174 gradients
+    
     """
 
-    parser.add_argument("--cfg", type=str, default="backbone_yaml/yolov5s_GhostNetV3.yaml", help="models.yaml")
+    parser.add_argument("--cfg", type=str, default="backbone_yaml/yolov5s_MobileViTv2.yaml", help="models.yaml")
     parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs")
-    parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
+
+    parser.add_argument("--device", default="0", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
+
     parser.add_argument("--profile", action="store_true", help="profile models speed")
     parser.add_argument("--line-profile", action="store_true", help="profile models speed layer by layer")
     parser.add_argument("--test", action="store_true", help="test all yolo*.yaml")
