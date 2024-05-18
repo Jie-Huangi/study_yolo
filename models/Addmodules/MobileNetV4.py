@@ -612,13 +612,16 @@ class MultiHeadSelfAttentionBlock(nn.Module):
 def build_blocks(layer_spec):
     if not layer_spec.get('block_name'):
         return nn.Sequential()
+
     block_names = layer_spec['block_name']
     layers = nn.Sequential()
+
     if block_names == "convbn":
         schema_ = ['inp', 'oup', 'kernel_size', 'stride']
         for i in range(layer_spec['num_blocks']):
             args = dict(zip(schema_, layer_spec['block_specs'][i]))
             layers.add_module(f"convbn_{i}", conv_2d(**args))
+
     elif block_names == "uib":
         schema_ = ['inp', 'oup', 'start_dw_kernel_size', 'middle_dw_kernel_size', 'middle_dw_downsample', 'stride',
                    'expand_ratio', 'msha']
@@ -633,6 +636,7 @@ def build_blocks(layer_spec):
                 ]
                 args = dict(zip(msha_schema_, [args['oup']] + (msha)))
                 layers.add_module(f"msha_{i}", MultiHeadSelfAttentionBlock(**args))
+
     elif block_names == "fused_ib":
         schema_ = ['inp', 'oup', 'stride', 'expand_ratio', 'act']
         for i in range(layer_spec['num_blocks']):
@@ -640,6 +644,7 @@ def build_blocks(layer_spec):
             layers.add_module(f"fused_ib_{i}", InvertedResidual(**args))
     else:
         raise NotImplementedError
+
     return layers
 
 
@@ -669,6 +674,7 @@ class MobileNetV4(nn.Module):
         self.layer4 = build_blocks(self.spec['layer4'])
         # layer5
         self.layer5 = build_blocks(self.spec['layer5'])
+
         self.width_list = [i.size(1) for i in self.forward(torch.randn(1, 3, 640, 640))]
 
     def forward(self, x):

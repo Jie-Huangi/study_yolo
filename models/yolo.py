@@ -574,12 +574,13 @@ if __name__ == "__main__":
     12. models/backbone_yaml/yolov5s_MobileNetV2.yaml   # 5366461 parameters, 5366461 gradients, 11.4 GFLOPs
     13. models/backbone_yaml/yolov5s_MobileNetV3.yaml   # 7595587 parameters, 7595587 gradients, 12.2 GFLOPs
     14. models/backbone_yaml/yolov5s_MobileNetV4.yaml   # 5812061 parameters, 5812061 gradients, 9.2 GFLOPs
+    
     15. models/backbone_yaml/yolov5s_MobileViTv1.yaml   # 4820629 parameters, 4820629 gradients, 11.2 GFLOPs
     16. models/backbone_yaml/yolov5s_MobileViTv2.yaml   # 4878174 parameters, 4878174 gradients
     
     """
 
-    parser.add_argument("--cfg", type=str, default="backbone_yaml/yolov5s_MobileViTv2.yaml", help="models.yaml")
+    parser.add_argument("--cfg", type=str, default="backbone_yaml/yolov5s_MobileNetV4.yaml", help="models.yaml")
     parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs")
 
     parser.add_argument("--device", default="0", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
@@ -587,9 +588,11 @@ if __name__ == "__main__":
     parser.add_argument("--profile", action="store_true", help="profile models speed")
     parser.add_argument("--line-profile", action="store_true", help="profile models speed layer by layer")
     parser.add_argument("--test", action="store_true", help="test all yolo*.yaml")
+
     opt = parser.parse_args()
     opt.cfg = check_yaml(opt.cfg)  # check YAML
     print_args(vars(opt))
+
     device = select_device(opt.device)
 
     # Create models

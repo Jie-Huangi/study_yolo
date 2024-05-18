@@ -118,7 +118,7 @@ class MobileNetV1(nn.Module):
 
         for model in self.model:
             x = model(x)
-            if x.size(1) in self.index:
+            if x.size(1) in self.index:  # x.size(1) -> (batch_size, channels, height, width)
                 position = self.index.index(x.size(1))  # Find the position in the index list
                 results[position] = x
         return results

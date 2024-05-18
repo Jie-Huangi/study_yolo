@@ -768,6 +768,7 @@ class EfficientNet(nn.Module):
         # set activation to memory efficient swish by default
         self._swish = MemoryEfficientSwish()
         self.width_list = [i.size(1) for i in self.forward(torch.randn(1, 3, 640, 640))]
+
     def set_swish(self, memory_efficient=True):
         """Sets swish function as memory efficient (for training) or standard (for export).
         Args:

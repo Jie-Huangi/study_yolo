@@ -171,6 +171,7 @@ class GhostNet(nn.Module):
         # building inverted residual blocks
         stages = []
         block = GhostBottleneck
+
         for cfg in self.cfgs:
             layers = []
             for k, exp_size, c, se_ratio, s in cfg:
@@ -182,23 +183,30 @@ class GhostNet(nn.Module):
             stages.append(nn.Sequential(*layers))
 
         output_channel = _make_divisible(exp_size * width, 4)
+
         stages.append(nn.Sequential(ConvBnAct(input_channel, output_channel, 1)))
         input_channel = output_channel
 
         self.blocks = nn.Sequential(*stages)
         self.width_list = [i.size(1) for i in self.forward(torch.randn(1, 3, 640, 640))]
+
     def forward(self, x):
+
         unique_tensors = {}
+
         x = self.conv_stem(x)
         x = self.bn1(x)
         x = self.act1(x)
+
         for model in self.blocks:
             x = model(x)
             if self.dropout > 0.:
                 x = F.dropout(x, p=self.dropout, training=self.training)
             width, height = x.shape[2], x.shape[3]
             unique_tensors[(width, height)] = x
+
         result_list = list(unique_tensors.values())[-4:]
+
         return result_list
 
 
