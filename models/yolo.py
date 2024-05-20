@@ -6,6 +6,8 @@ Usage:
     $ python models/yolo.py --cfg yolov5s-C2f-FasterBlock_obb.yaml
 """
 from models.Addmodules import *
+from models.Addattention import *
+
 # from models.Add_backbone import *
 import argparse
 import contextlib
@@ -466,13 +468,16 @@ def parse_model(d, ch):
             DWConvTranspose2d,
             C3x,
             C2f_FasterBlock,
+            C1, C2, C2f,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
                 c2 = make_divisible(c2 * gw, ch_mul)
 
             args = [c1, c2, *args[1:]]
-            if m in {BottleneckCSP, C3, C3TR, C3Ghost, C3x}:
+            if m in {BottleneckCSP,
+                     C1, C2, C2f,
+                     C3, C3TR, C3Ghost, C3x}:
                 args.insert(2, n)  # number of repeats
                 n = 1
 
@@ -491,6 +496,14 @@ def parse_model(d, ch):
             c2 = m.width_list  # 返回通道列表
             backbone = True
         # ---------------------------------------主干----------------------------
+
+        # ---------------------------------------注意力机制------------------------
+        elif m in {CoordAtt, CBAM, ECA, GAM
+
+                   }:
+            c2 = ch[f]
+            args = [c2, *args]
+        # ---------------------------------------注意力机制-----------------------
 
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
@@ -555,6 +568,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     """
+    basic_model_yolo: 
+    1. models/Basic_Model_YOLO/yolov3.yaml              # 61949149 parameters, 61949149 gradients, 156.6 GFLOPs
+    2. models/Basic_Model_YOLO/yolov3-spp.yaml          # 62971933 parameters, 62971933 gradients, 156.7 GFLOPs
+    3. models/Basic_Model_YOLO/yolov3-tiny.yaml         # 8852366 parameters, 8852366 gradients, 13.3 GFLOPs
+    4. models/Basic_Model_YOLO/yolov5.yaml              # 46563709 parameters, 46563709 gradients, 109.6 GFLOPs
+    5. models/Basic_Model_YOLO/yolov6.yaml              # 155941181 parameters, 155941181 gradients, 422.1 GFLOPs
+    6. models/Basic_Model_YOLO/yolov8.yaml              # 70105917 parameters, 70105917 gradients, 166.8 GFLOPs
+    
     backbone:
     1. backbone_yaml/yolov5s.yaml                       # 7235389 parameters, 7235389 gradients, 16.6 GFLOPs
     2. backbone_yaml/yolov5s_c2f_Faster.yaml            # 6080637 parameters, 6080637 gradients, 14.5 GFLOPs
@@ -578,9 +599,14 @@ if __name__ == "__main__":
     15. models/backbone_yaml/yolov5s_MobileViTv1.yaml   # 4820629 parameters, 4820629 gradients, 11.2 GFLOPs
     16. models/backbone_yaml/yolov5s_MobileViTv2.yaml   # 4878174 parameters, 4878174 gradients
     
+    Attention：
+    1. models/Attention_yaml/yolov5s_CA.yaml            # 7359341 parameters, 7359341 gradients, 17.0 GFLOPs
+    2. models/Attention_yaml/yolov5s_CA_End.yaml        # 7261037 parameters, 7261037 gradients, 16.7 GFLOPs
+    
     """
 
-    parser.add_argument("--cfg", type=str, default="backbone_yaml/yolov5s_MobileNetV4.yaml", help="models.yaml")
+
+    parser.add_argument("--cfg", type=str, default="Basic_Model_YOLO/yolov8.yaml", help="models.yaml")
     parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs")
 
     parser.add_argument("--device", default="0", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")

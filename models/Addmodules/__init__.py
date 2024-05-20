@@ -17,3 +17,5 @@ from .EfficientViT2 import *
 from .GhostNetV1 import *
 from .GhostNetV2 import *
 from .GhostNetV3 import *
+
+from .block import *

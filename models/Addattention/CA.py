@@ -59,3 +59,12 @@ class CoordAtt(nn.Module):
         out = identity * a_w * a_h
 
         return out
+
+
+if __name__ == '__main__':
+    img = torch.rand(1, 64, 32, 48)
+    b, c, h, w = img.shape
+    net = CoordAtt(inp=c)
+    output = net(img)
+    print(output.shape)
+    # print(output)
