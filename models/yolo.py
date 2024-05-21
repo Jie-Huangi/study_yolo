@@ -469,6 +469,7 @@ def parse_model(d, ch):
             C3x,
             C2f_FasterBlock,
             C1, C2, C2f,
+            RepNCSPELAN4, ADown, SPPELAN, RepNCSPELAN4_low, RepNCSPELAN4_high,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
@@ -572,9 +573,14 @@ if __name__ == "__main__":
     1. models/Basic_Model_YOLO/yolov3.yaml              # 61949149 parameters, 61949149 gradients, 156.6 GFLOPs
     2. models/Basic_Model_YOLO/yolov3-spp.yaml          # 62971933 parameters, 62971933 gradients, 156.7 GFLOPs
     3. models/Basic_Model_YOLO/yolov3-tiny.yaml         # 8852366 parameters, 8852366 gradients, 13.3 GFLOPs
+    
     4. models/Basic_Model_YOLO/yolov5.yaml              # 46563709 parameters, 46563709 gradients, 109.6 GFLOPs
     5. models/Basic_Model_YOLO/yolov6.yaml              # 155941181 parameters, 155941181 gradients, 422.1 GFLOPs
     6. models/Basic_Model_YOLO/yolov8.yaml              # 70105917 parameters, 70105917 gradients, 166.8 GFLOPs
+    
+    7. models/Basic_Model_YOLO/yolov9c.yaml             # 19126717 parameters, 19126717 gradients, 76.2 GFLOPs
+    8. models/Basic_Model_YOLO/yolov9c_low.yaml         # 12875133 parameters, 12875133 gradients, 32.1 GFLOPs
+
     
     backbone:
     1. backbone_yaml/yolov5s.yaml                       # 7235389 parameters, 7235389 gradients, 16.6 GFLOPs
@@ -606,7 +612,7 @@ if __name__ == "__main__":
     """
 
 
-    parser.add_argument("--cfg", type=str, default="Basic_Model_YOLO/yolov8.yaml", help="models.yaml")
+    parser.add_argument("--cfg", type=str, default="Basic_Model_YOLO/yolov9c_low.yaml", help="models.yaml")
     parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs")
 
     parser.add_argument("--device", default="0", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")

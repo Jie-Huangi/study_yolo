@@ -19,3 +19,8 @@ from .GhostNetV2 import *
 from .GhostNetV3 import *
 
 from .block import *
+
+from .RepNCSPELAN4 import *
+from .ADown import *
+from .SPPFELAN import *
+from .RepNCSPELAN4_low_high import *
