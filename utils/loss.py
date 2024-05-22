@@ -102,7 +102,6 @@ class QFocalLoss(nn.Module):
 
 class ComputeLoss:
     sort_obj_iou = False
-
     # Compute losses
     def __init__(self, model, autobalance=False):
         """Initializes ComputeLoss with models and autobalance option, autobalances losses if True."""
@@ -152,7 +151,13 @@ class ComputeLoss:
                 pxy = pxy.sigmoid() * 2 - 0.5
                 pwh = (pwh.sigmoid() * 2) ** 2 * anchors[i]
                 pbox = torch.cat((pxy, pwh), 1)  # predicted box
-                iou = bbox_iou(pbox, tbox[i], CIoU=True).squeeze()  # iou(prediction, target)
+
+                # 计算 边界框损失函数
+                # GIoU=False, DIoU=False, CIoU=False
+                # EIoU=False, SIoU=False, WIoU=False
+                # ShapeIoU=False, mpdiou=False,
+                iou = bbox_iou(pbox, tbox[i], SIoU=True).squeeze()  # iou(prediction, target)
+
                 lbox += (1.0 - iou).mean()  # iou loss
 
                 # Objectness

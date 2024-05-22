@@ -3,13 +3,26 @@
 
 本代码克隆于2024年5月12日，版本号为YOLOv5_v7.0。
 
-本代码在YOLOv5的基础上，集成各种主干网路、注意力机制函数、检测头、以及损失函数。
+本代码在YOLOv5的基础上，集成各种主干网路、注意力机制函数、以及损失函数。
 
 主要用于学习不同模块之间的区别，快速找到适合自己数据集的那个模型。
 
 ## 更新日志
 
 2024年5月21日
+
+添加边界框损失函数
+```python
+GIoU (bool, optional): If True, calculate Generalized IoU. Defaults to False.
+DIoU (bool, optional): If True, calculate Distance IoU. Defaults to False.
+CIoU (bool, optional): If True, calculate Complete IoU. Defaults to False.
+
+EIoU (bool, optional): If True, calculate Efficient IoU. Defaults to False.
+SIoU (bool, optional): If True, calculate Scylla IoU. Defaults to False.
+WIoU (bool, optional): 
+ShapeIoU (bool, optional): 
+mpdiou (bool, optional): 
+```
 
 更新注意力机制函数
 
