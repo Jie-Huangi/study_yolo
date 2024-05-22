@@ -499,7 +499,7 @@ def parse_model(d, ch):
         # ---------------------------------------主干----------------------------
 
         # ---------------------------------------注意力机制------------------------
-        elif m in {CoordAtt, CBAM, ECA, GAM
+        elif m in {CoordAtt, CBAM, ECA, GAM, DAttentionBaseline,
 
                    }:
             c2 = ch[f]
@@ -609,10 +609,16 @@ if __name__ == "__main__":
     1. models/Attention_yaml/yolov5s_CA.yaml            # 7359341 parameters, 7359341 gradients, 17.0 GFLOPs
     2. models/Attention_yaml/yolov5s_CA_End.yaml        # 7261037 parameters, 7261037 gradients, 16.7 GFLOPs
     
+    3. models/Attention_yaml/yolov5s_CBAM.yaml          # 7596447 parameters, 7596447 gradients, 17.2 GFLOPs
+    4. models/Attention_yaml/yolov5s_ECA.yaml           # 7333696 parameters, 7333696 gradients, 16.9 GFLOPs
+    
+    5. models/Attention_yaml/yolov5s_GAM.yaml           # 13889853 parameters, 13889853 gradients, 22.2 GFLOPs
+    6. models/Attention_yaml/yolov5s_DAT.yaml           # 8433469 parameters, 8433469 gradients, 17.8 GFLOPs
+    
     """
 
 
-    parser.add_argument("--cfg", type=str, default="Basic_Model_YOLO/yolov9c_low.yaml", help="models.yaml")
+    parser.add_argument("--cfg", type=str, default="Attention_yaml/yolov5s_DAT.yaml", help="models.yaml")
     parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs")
 
     parser.add_argument("--device", default="0", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
