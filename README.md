@@ -9,6 +9,18 @@
 
 ## 更新日志
 
+2024年5月21日
+
+更新注意力机制函数
+
+```python
+from .CA import *
+from .CBAM import *
+from .ECA import *
+from .GAM import *
+from .DAT import *
+```
+
 2024年5月20日
 添加基准模型，YOLOv3，YOLOv5，YOLOv6，YOLOv8，YOLOv9
 
